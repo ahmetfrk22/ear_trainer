@@ -22,8 +22,13 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
   final AudioPlayerService _audioPlayer = AudioPlayerService();
   late int _octave;
 
+  // Notalarımız C6'ya kadar olduğu için maksimum başlangıç oktavı 5 olabilir.
+  // Böylece Oktav 5 seçildiğinde son tuş C6'yı gösterebilir.
   static const int _minOctave = 2;
-  static const int _maxOctave = 6;
+  static const int _maxOctave = 5;
+
+  // Basılan tuşu anlık olarak takip etmek için
+  String? _pressedKey;
 
   @override
   void initState() {
@@ -47,7 +52,8 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
 
   @override
   Widget build(BuildContext context) {
-    final whiteNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B'];
+    // Artık 8 beyaz tuşumuz var: C, D, E, F, G, A, B ve bir sonraki oktavın C'si.
+    final whiteNotes = ['C', 'D', 'E', 'F', 'G', 'A', 'B', 'C'];
     final blackNotes = {0: 'Db', 1: 'Eb', 3: 'Gb', 4: 'Ab', 5: 'Bb'};
 
     return Column(
@@ -76,7 +82,6 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
             ),
           ],
         ),
-
         const SizedBox(height: 10),
 
         // Piyano tuşları
@@ -84,33 +89,47 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
           height: 140,
           child: LayoutBuilder(
             builder: (context, constraints) {
-              final whiteKeyWidth = constraints.maxWidth / 7;
-              final blackKeyWidth = whiteKeyWidth * 0.6;
+              // Ekranı 8 beyaz tuşa göre bölüyoruz
+              final whiteKeyWidth = constraints.maxWidth / 8;
+              final blackKeyWidth = whiteKeyWidth * 0.65;
 
               return Stack(
                 children: [
                   // Beyaz tuşlar
                   Row(
-                    children: List.generate(7, (i) {
-                      final noteName = '${whiteNotes[i]}$_octave';
+                    children: List.generate(8, (i) {
+                      // Son tuş (index 7) bir üst oktavın C'sidir
+                      final isNextOctaveC = i == 7;
+                      final currentOctave = isNextOctaveC ? _octave + 1 : _octave;
+                      final noteName = '${whiteNotes[i]}$currentOctave';
+
                       final noteExists = allNotes.any((n) => n.name == noteName);
                       if (!noteExists) {
                         return SizedBox(width: whiteKeyWidth);
                       }
+
                       final note = allNotes.firstWhere((n) => n.name == noteName);
                       final isHighlighted = widget.highlightedNote == noteName;
+                      final isPressed = _pressedKey == noteName;
 
                       return GestureDetector(
-                        onTap: () async {
+                        onTapDown: (_) => setState(() => _pressedKey = noteName),
+                        onTapUp: (_) async {
+                          setState(() => _pressedKey = null);
                           await _audioPlayer.playNote(note);
                           if (widget.onKeyTap != null) widget.onKeyTap!(note);
                         },
-                        child: Container(
+                        onTapCancel: () => setState(() => _pressedKey = null),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 80),
                           width: whiteKeyWidth,
                           height: 140,
+                          // Basıldığında veya doğru cevap olduğunda renk değişimi
                           decoration: BoxDecoration(
-                            color: isHighlighted
-                                ? const Color(0xFFA78BFA)
+                            color: isPressed
+                                ? const Color(0xFFD4C9FF) // Basılma efekti (açık mor)
+                                : isHighlighted
+                                ? const Color(0xFFA78BFA) // Hedef nota (mor)
                                 : Colors.white,
                             border: Border.all(
                               color: const Color(0xFF2A2440),
@@ -124,14 +143,14 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
+                              padding: EdgeInsets.only(bottom: isPressed ? 4 : 8), // Basıldığında yazı hafif aşağı kayar
                               child: Text(
                                 whiteNotes[i],
                                 style: TextStyle(
                                   fontSize: 11,
                                   fontWeight: FontWeight.w600,
-                                  color: isHighlighted
-                                      ? Colors.white
+                                  color: (isHighlighted || isPressed)
+                                      ? (isPressed ? const Color(0xFF13111C) : Colors.white)
                                       : const Color(0xFF4A4560),
                                 ),
                               ),
@@ -147,27 +166,36 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
                     final i = entry.key;
                     final notePrefix = entry.value;
                     final noteName = '$notePrefix$_octave';
+
                     final noteExists = allNotes.any((n) => n.name == noteName);
                     if (!noteExists) return const SizedBox();
+
                     final note = allNotes.firstWhere((n) => n.name == noteName);
                     final isHighlighted = widget.highlightedNote == noteName;
-                    final leftOffset = (i * whiteKeyWidth) +
-                        (whiteKeyWidth - blackKeyWidth / 2) -
-                        (whiteKeyWidth * 0.08);
+                    final isPressed = _pressedKey == noteName;
+
+                    // Siyah tuşların pozisyon hesabı (Beyaz tuşların arasına yerleşir)
+                    final leftOffset = ((i + 1) * whiteKeyWidth) - (blackKeyWidth / 2);
 
                     return Positioned(
                       left: leftOffset,
                       top: 0,
                       child: GestureDetector(
-                        onTap: () async {
+                        onTapDown: (_) => setState(() => _pressedKey = noteName),
+                        onTapUp: (_) async {
+                          setState(() => _pressedKey = null);
                           await _audioPlayer.playNote(note);
                           if (widget.onKeyTap != null) widget.onKeyTap!(note);
                         },
-                        child: Container(
+                        onTapCancel: () => setState(() => _pressedKey = null),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 80),
                           width: blackKeyWidth,
-                          height: 90,
+                          height: isPressed ? 86 : 90, // Basıldığında hafif kısalır (çökme hissi)
                           decoration: BoxDecoration(
-                            color: isHighlighted
+                            color: isPressed
+                                ? const Color(0xFF7C6F9E) // Basılma efekti
+                                : isHighlighted
                                 ? const Color(0xFFA78BFA)
                                 : const Color(0xFF1A1628),
                             borderRadius: const BorderRadius.only(

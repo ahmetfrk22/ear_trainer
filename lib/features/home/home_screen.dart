@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../single_note/single_note_screen.dart';
+// NOT: Proje adın 'muzik_kulagi' değilse, aşağıdaki yolları pubspec.yaml'daki 'name' ile değiştir.
+import 'package:muzik_kulagi/features/pitch_matching/pitch_matching_screen.dart';
+import 'package:muzik_kulagi/features/interval/interval_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,7 +17,7 @@ class HomeScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const SizedBox(height: 16),
-
+              // Ana Başlık
               const Text(
                 'Müzik\nKulağı',
                 style: TextStyle(
@@ -35,9 +37,8 @@ class HomeScreen extends StatelessWidget {
                   letterSpacing: 0.3,
                 ),
               ),
-
               const SizedBox(height: 12),
-
+              // Altın Vurgu Çizgisi
               Container(
                 width: 48,
                 height: 1.5,
@@ -46,48 +47,56 @@ class HomeScreen extends StatelessWidget {
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
-
               const SizedBox(height: 40),
 
+              // Modül Listesi
               Expanded(
                 child: ListView(
+                  physics: const BouncingScrollPhysics(),
                   children: [
+                    // 1. MODÜL: SES VERME (Vokal Eşleştirme)
                     _ModuleCard(
-                      icon: Icons.music_note_rounded,
-                      title: 'Tek Ses Tanıma',
-                      subtitle: 'Çalınan notayı söyle veya tahmin et',
+                      icon: Icons.mic_rounded,
+                      title: 'Ses Verme',
+                      subtitle: '1, 2 veya 3 sesi vokal olarak eşleştir',
                       accentColor: const Color(0xFFA78BFA),
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(
-                            builder: (_) => const SingleNoteScreen()),
+                            builder: (_) => const PitchMatchingScreen()),
                       ),
                     ),
                     const SizedBox(height: 12),
+
+                    // 2. MODÜL: ARALIK TANIMA (Teorik/İşitsel Test)
                     _ModuleCard(
                       icon: Icons.piano_rounded,
-                      title: 'İnterval Tanıma',
-                      subtitle: 'İki nota arasındaki aralığı bul',
+                      title: 'Aralık Tanıma',
+                      subtitle: 'İki nota arasındaki mesafeyi bul',
                       accentColor: const Color(0xFF6EE7B7),
-                      onTap: () {},
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const IntervalScreen()),
+                      ),
                     ),
                     const SizedBox(height: 12),
-                    _ModuleCard(
-                      icon: Icons.mic_rounded,
-                      title: 'Ses Egzersizi',
-                      subtitle: 'Mikrofon ile ses çalışması yap',
-                      accentColor: const Color(0xFFFDA4AF),
-                      onTap: () {},
-                    ),
-                    const SizedBox(height: 12),
+
+                    // 3. MODÜL: SOLFEJ (Gelecek Özellik)
                     _ModuleCard(
                       icon: Icons.library_music_rounded,
                       title: 'Solfej',
                       subtitle: 'Nota kağıdından solfej oku',
                       accentColor: const Color(0xFF93C5FD),
-                      onTap: () {},
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('Solfej modülü yakında eklenecek!')),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
+
+                    // 4. MODÜL: İLERLEME (İstatistikler)
                     _ModuleCard(
                       icon: Icons.bar_chart_rounded,
                       title: 'İlerleme',
@@ -100,7 +109,7 @@ class HomeScreen extends StatelessWidget {
               ),
 
               const SizedBox(height: 16),
-
+              // Alt Bilgi: Streak Göstergesi
               Center(
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -158,6 +167,7 @@ class _ModuleCard extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Row(
             children: [
+              // İkon Kutusu
               Container(
                 width: 44,
                 height: 44,
@@ -168,6 +178,7 @@ class _ModuleCard extends StatelessWidget {
                 child: Icon(icon, color: accentColor, size: 22),
               ),
               const SizedBox(width: 16),
+              // Metin Alanı
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -192,6 +203,7 @@ class _ModuleCard extends StatelessWidget {
                   ],
                 ),
               ),
+              // Sağ Ok Simgesi
               Icon(
                 Icons.chevron_right_rounded,
                 color: accentColor.withOpacity(0.4),
