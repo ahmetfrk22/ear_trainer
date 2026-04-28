@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:muzik_kulagi/core/utils/color_utils.dart';
 // NOT: Proje adın 'muzik_kulagi' değilse, aşağıdaki yolları pubspec.yaml'daki 'name' ile değiştir.
 import 'package:muzik_kulagi/features/pitch_matching/pitch_matching_screen.dart';
 import 'package:muzik_kulagi/features/interval/interval_screen.dart';
+import 'package:muzik_kulagi/features/interval_trainer/interval_trainer_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -9,7 +11,7 @@ class HomeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF13111C),
+      backgroundColor: Colors.transparent,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
@@ -24,7 +26,7 @@ class HomeScreen extends StatelessWidget {
                   fontFamily: 'Playfair',
                   fontSize: 48,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFFEDE9FE),
+                  color: Colors.black87,
                   height: 1.1,
                 ),
               ),
@@ -33,7 +35,7 @@ class HomeScreen extends StatelessWidget {
                 'Kulağını her gün biraz daha geliştir.',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Color(0xFF7C6F9E),
+                  color: Colors.black54,
                   letterSpacing: 0.3,
                 ),
               ),
@@ -43,7 +45,7 @@ class HomeScreen extends StatelessWidget {
                 width: 48,
                 height: 1.5,
                 decoration: BoxDecoration(
-                  color: const Color(0xFFA78BFA),
+                  color: const Color(0xFF008080),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -82,7 +84,21 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // 3. MODÜL: SOLFEJ (Gelecek Özellik)
+                    // 3. MODÜL: ARALIK BULMA (Görsel/Dokunsal Test)
+                    _ModuleCard(
+                      icon: Icons.ads_click_rounded,
+                      title: 'Aralık Bulma',
+                      subtitle: 'Verilen aralığı piyanoda bul',
+                      accentColor: const Color(0xFFFBBF24),
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (_) => const IntervalTrainerScreen()),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    // 4. MODÜL: SOLFEJ (Gelecek Özellik)
                     _ModuleCard(
                       icon: Icons.library_music_rounded,
                       title: 'Solfej',
@@ -124,7 +140,7 @@ class HomeScreen extends StatelessWidget {
                       'Günlük seri: 0 gün',
                       style: TextStyle(
                         fontSize: 13,
-                        color: const Color(0xFF7C6F9E).withOpacity(0.9),
+                        color: const Color(0xFF7C6F9E).withOpacitySafe(0.9),
                       ),
                     ),
                   ],
@@ -156,13 +172,14 @@ class _ModuleCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: const Color(0xFF1E1A2E),
+      color: Colors.white,
+      elevation: 6,
       borderRadius: BorderRadius.circular(14),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(14),
-        splashColor: accentColor.withOpacity(0.08),
-        highlightColor: accentColor.withOpacity(0.04),
+        splashColor: accentColor.withOpacitySafe(0.08),
+        highlightColor: accentColor.withOpacitySafe(0.04),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
           child: Row(
@@ -172,7 +189,7 @@ class _ModuleCard extends StatelessWidget {
                 width: 44,
                 height: 44,
                 decoration: BoxDecoration(
-                  color: accentColor.withOpacity(0.12),
+                  color: accentColor.withOpacitySafe(0.12),
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(icon, color: accentColor, size: 22),
@@ -189,7 +206,7 @@ class _ModuleCard extends StatelessWidget {
                         fontFamily: 'Playfair',
                         fontSize: 15,
                         fontWeight: FontWeight.w700,
-                        color: Color(0xFFEDE9FE),
+                        color: Colors.black87,
                       ),
                     ),
                     const SizedBox(height: 3),
@@ -197,7 +214,7 @@ class _ModuleCard extends StatelessWidget {
                       subtitle,
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF7C6F9E),
+                        color: Colors.black54,
                       ),
                     ),
                   ],
@@ -206,7 +223,7 @@ class _ModuleCard extends StatelessWidget {
               // Sağ Ok Simgesi
               Icon(
                 Icons.chevron_right_rounded,
-                color: accentColor.withOpacity(0.4),
+                color: accentColor.withOpacitySafe(0.4),
                 size: 20,
               ),
             ],

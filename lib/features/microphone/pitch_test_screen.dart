@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/audio/audio_player_service.dart';
 import '../../core/audio/microphone_service.dart';
@@ -21,6 +22,7 @@ class _PitchTestScreenState extends State<PitchTestScreen> {
   NoteModel? _detectedNote;
   double? _centDiff;
   bool _isListening = false;
+  StreamSubscription<double?>? _pitchSubscription;
   String _resultText = 'Bir nota seç ve çal butonuna bas';
   int _correctCount = 0;
   static const int _requiredCorrectCount = 8;
@@ -54,7 +56,8 @@ class _PitchTestScreenState extends State<PitchTestScreen> {
       _correctCount = 0;
     });
     await _microphone.startListening();
-    _microphone.pitchStream.listen((double? freq) async {
+    await _pitchSubscription?.cancel();
+    _pitchSubscription = _microphone.pitchStream.listen((double? freq) async {
       if (freq == null || freq < 60 || freq > 2000) return;
 
       final correctedFreq = _analyzer.correctOctave(freq, _targetNote!.frequency);
@@ -87,19 +90,26 @@ class _PitchTestScreenState extends State<PitchTestScreen> {
   }
 
   Future<void> _stopListening() async {
-    await _microphone.stopListening();
-    setState(() {
+    final prevText = _resultText;
+    if (mounted) {
+      setState(() {
       _isListening = false;
-      _resultText = _resultText.contains('✓') ||
-          _resultText.contains('✗') ||
-          _resultText.contains('🎉')
-          ? _resultText
-          : 'Durduruldu';
-    });
+        _resultText = prevText.contains('✓') ||
+                prevText.contains('✗') ||
+                prevText.contains('🎉')
+            ? prevText
+            : 'Durduruldu';
+      });
+    }
+
+    await _pitchSubscription?.cancel();
+    _pitchSubscription = null;
+    await _microphone.stopListening();
   }
 
   @override
   void dispose() {
+    _pitchSubscription?.cancel();
     _audioPlayer.dispose();
     _microphone.dispose();
     super.dispose();
@@ -108,13 +118,14 @@ class _PitchTestScreenState extends State<PitchTestScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF1A1A2E),
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF16213E),
+        backgroundColor: Colors.transparent,
         title: const Text(
           'Pitch Test',
           style: TextStyle(color: Colors.white),
         ),
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(24.0),

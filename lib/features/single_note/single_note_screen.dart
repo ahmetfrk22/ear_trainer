@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../core/audio/audio_player_service.dart';
 import '../../core/audio/microphone_service.dart';
 import '../../core/audio/pitch_analyzer.dart';
 import '../../core/models/note_model.dart';
 import '../../core/widgets/piano_keyboard.dart';
+import 'package:muzik_kulagi/core/utils/color_utils.dart';
 
 enum NoteExerciseMode { guess, vocal }
 
@@ -26,6 +28,7 @@ class _SingleNoteScreenState extends State<SingleNoteScreen> {
 
   bool _isListening = false;
   bool _answered = false;
+  StreamSubscription<double?>? _pitchSubscription;
 
   String _feedbackText = 'Başlamak için yeni soru iste';
   Color _feedbackColor = const Color(0xFF7C6F9E);
@@ -98,9 +101,11 @@ class _SingleNoteScreenState extends State<SingleNoteScreen> {
       _feedbackColor = const Color(0xFF7C6F9E);
     });
 
-    await _microphone.startListening();
+    await _pitchSubscription?.cancel();
+    _pitchSubscription = null;
 
-    _microphone.pitchStream.listen((double? freq) async {
+    await _microphone.startListening();
+    _pitchSubscription = _microphone.pitchStream.listen((double? freq) async {
       if (freq == null || freq < 60 || freq > 2000) return;
 
       final corrected = _analyzer.correctOctave(freq, _targetNote!.frequency);
@@ -148,8 +153,12 @@ class _SingleNoteScreenState extends State<SingleNoteScreen> {
   }
 
   Future<void> _stopListening() async {
+    if (mounted) setState(() => _isListening = false);
+
+    await _pitchSubscription?.cancel();
+    _pitchSubscription = null;
+
     await _microphone.stopListening();
-    setState(() => _isListening = false);
   }
 
   void _switchMode(NoteExerciseMode newMode) {
@@ -164,6 +173,7 @@ class _SingleNoteScreenState extends State<SingleNoteScreen> {
 
   @override
   void dispose() {
+    _pitchSubscription?.cancel();
     _audioPlayer.dispose();
     _microphone.dispose();
     super.dispose();
@@ -172,9 +182,9 @@ class _SingleNoteScreenState extends State<SingleNoteScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF13111C),
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E1A2E),
+        backgroundColor: Colors.transparent,
         elevation: 0,
         title: const Text(
           'Tek Ses Tanıma',
@@ -258,7 +268,7 @@ class _SingleNoteScreenState extends State<SingleNoteScreen> {
                         color: const Color(0xFF1E1A2E),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: _answered ? _feedbackColor.withOpacity(0.5) : Colors.transparent,
+                          color: _answered ? _feedbackColor.withOpacitySafe(0.5) : Colors.transparent,
                           width: 2,
                         ),
                       ),
@@ -296,7 +306,7 @@ class _SingleNoteScreenState extends State<SingleNoteScreen> {
                       duration: const Duration(milliseconds: 300),
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       decoration: BoxDecoration(
-                        color: _feedbackColor.withOpacity(0.1),
+                        color: _feedbackColor.withOpacitySafe(0.1),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
@@ -365,7 +375,7 @@ class _SingleNoteScreenState extends State<SingleNoteScreen> {
                       _ActionButton(
                         label: _isListening ? 'Kapat' : 'Mikrofonu Aç',
                         icon: _isListening ? Icons.mic_off_rounded : Icons.mic_rounded,
-                        color: _isListening ? const Color(0xFFFDA4AF).withOpacity(0.2) : const Color(0xFF6EE7B7).withOpacity(0.2),
+                        color: _isListening ? const Color(0xFFFDA4AF).withOpacitySafe(0.2) : const Color(0xFF6EE7B7).withOpacitySafe(0.2),
                         textColor: _isListening ? const Color(0xFFFDA4AF) : const Color(0xFF6EE7B7),
                         onTap: _isListening ? _stopListening : _startListening,
                       )

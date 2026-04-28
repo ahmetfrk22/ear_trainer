@@ -4,14 +4,18 @@ import '../audio/audio_player_service.dart';
 
 class PianoKeyboard extends StatefulWidget {
   final String? highlightedNote;
+  final Map<String, Color>? highlightedNotes;
   final Function(NoteModel)? onKeyTap;
   final int initialOctave;
+  final bool showOctaveSelector; // Yeni parametre
 
   const PianoKeyboard({
     super.key,
     this.highlightedNote,
+    this.highlightedNotes,
     this.onKeyTap,
     this.initialOctave = 4,
+    this.showOctaveSelector = true, // Varsayılan olarak açık
   });
 
   @override
@@ -58,31 +62,33 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
 
     return Column(
       children: [
-        // Oktav seçici
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _OctaveButton(
-              icon: Icons.remove_rounded,
-              onTap: _octave > _minOctave ? _decreaseOctave : null,
-            ),
-            const SizedBox(width: 12),
-            Text(
-              'Oktav $_octave',
-              style: const TextStyle(
-                fontSize: 13,
-                color: Color(0xFF7C6F9E),
-                fontWeight: FontWeight.w500,
+        // Oktav seçici (Koşullu gösterim)
+        if (widget.showOctaveSelector) ...[
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _OctaveButton(
+                icon: Icons.remove_rounded,
+                onTap: _octave > _minOctave ? _decreaseOctave : null,
               ),
-            ),
-            const SizedBox(width: 12),
-            _OctaveButton(
-              icon: Icons.add_rounded,
-              onTap: _octave < _maxOctave ? _increaseOctave : null,
-            ),
-          ],
-        ),
-        const SizedBox(height: 10),
+              const SizedBox(width: 12),
+              Text(
+                'Oktav $_octave',
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF7C6F9E),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(width: 12),
+              _OctaveButton(
+                icon: Icons.add_rounded,
+                onTap: _octave < _maxOctave ? _increaseOctave : null,
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+        ],
 
         // Piyano tuşları
         SizedBox(
@@ -109,7 +115,12 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
                       }
 
                       final note = allNotes.firstWhere((n) => n.name == noteName);
-                      final isHighlighted = widget.highlightedNote == noteName;
+                      final highlightFromMap = widget.highlightedNotes?[noteName];
+                      final isHighlightedByMap = highlightFromMap != null;
+                      final isHighlightedBySingle = widget.highlightedNote == noteName;
+                      final isHighlighted = isHighlightedByMap || isHighlightedBySingle;
+                      final effectiveHighlightColor = highlightFromMap ??
+                          (isHighlightedBySingle ? const Color(0xFFA78BFA) : null);
                       final isPressed = _pressedKey == noteName;
 
                       return GestureDetector(
@@ -129,7 +140,7 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
                             color: isPressed
                                 ? const Color(0xFFD4C9FF) // Basılma efekti (açık mor)
                                 : isHighlighted
-                                ? const Color(0xFFA78BFA) // Hedef nota (mor)
+                                ? (effectiveHighlightColor ?? const Color(0xFFA78BFA))
                                 : Colors.white,
                             border: Border.all(
                               color: const Color(0xFF2A2440),
@@ -171,7 +182,12 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
                     if (!noteExists) return const SizedBox();
 
                     final note = allNotes.firstWhere((n) => n.name == noteName);
-                    final isHighlighted = widget.highlightedNote == noteName;
+                    final highlightFromMap = widget.highlightedNotes?[noteName];
+                    final isHighlightedByMap = highlightFromMap != null;
+                    final isHighlightedBySingle = widget.highlightedNote == noteName;
+                    final isHighlighted = isHighlightedByMap || isHighlightedBySingle;
+                    final effectiveHighlightColor = highlightFromMap ??
+                        (isHighlightedBySingle ? const Color(0xFFA78BFA) : null);
                     final isPressed = _pressedKey == noteName;
 
                     // Siyah tuşların pozisyon hesabı (Beyaz tuşların arasına yerleşir)
@@ -196,7 +212,7 @@ class _PianoKeyboardState extends State<PianoKeyboard> {
                             color: isPressed
                                 ? const Color(0xFF7C6F9E) // Basılma efekti
                                 : isHighlighted
-                                ? const Color(0xFFA78BFA)
+                                ? (effectiveHighlightColor ?? const Color(0xFFA78BFA))
                                 : const Color(0xFF1A1628),
                             borderRadius: const BorderRadius.only(
                               bottomLeft: Radius.circular(5),

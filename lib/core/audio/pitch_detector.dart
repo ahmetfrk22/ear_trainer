@@ -1,13 +1,8 @@
-import 'dart:math';
-
 class PitchDetector {
   final int sampleRate;
   final int bufferSize;
 
-  PitchDetector({
-    this.sampleRate = 44100,
-    this.bufferSize = 2048,
-  });
+  PitchDetector({this.sampleRate = 44100, this.bufferSize = 2048});
 
   // YIN algoritması — ham ses verisinden frekans tespit eder
   double? detect(List<double> buffer) {
@@ -34,7 +29,8 @@ class PitchDetector {
     int? tauEstimate;
     for (int tau = 2; tau < yinBuffer.length - 1; tau++) {
       if (yinBuffer[tau] < threshold) {
-        while (tau + 1 < yinBuffer.length && yinBuffer[tau + 1] < yinBuffer[tau]) {
+        while (tau + 1 < yinBuffer.length &&
+            yinBuffer[tau + 1] < yinBuffer[tau]) {
           tau++;
         }
         tauEstimate = tau;
@@ -46,7 +42,9 @@ class PitchDetector {
 
     // Adım 4: Parabolik interpolasyon (daha hassas sonuç)
     final int x0 = tauEstimate > 0 ? tauEstimate - 1 : tauEstimate;
-    final int x2 = tauEstimate + 1 < yinBuffer.length ? tauEstimate + 1 : tauEstimate;
+    final int x2 = tauEstimate + 1 < yinBuffer.length
+        ? tauEstimate + 1
+        : tauEstimate;
 
     double betterTau;
     if (x0 == tauEstimate) {
@@ -60,7 +58,8 @@ class PitchDetector {
     } else {
       final s0 = yinBuffer[x0];
       final s2 = yinBuffer[x2];
-      betterTau = tauEstimate +
+      betterTau =
+          tauEstimate +
           (s2 - s0) / (2.0 * (2.0 * yinBuffer[tauEstimate] - s2 - s0));
     }
 
