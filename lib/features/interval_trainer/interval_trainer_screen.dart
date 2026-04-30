@@ -79,32 +79,32 @@ class _IntervalTrainerScreenState extends State<IntervalTrainerScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Mevcut piyano hangi oktavı gösteriyor?
+    final int pianoOctave = int.tryParse(_rootNote.name.replaceAll(RegExp(r'[^0-9]'), '')) ?? 4;
+
     // Görsel geri bildirimde de octave bağımsız renklendirme yapalım
     Map<String, Color> highlightedNotes = {};
     
-    // Kök notanın o oktavdaki karşılığını bul (Genellikle piyanonun ilk tuşu olacak)
+    // Kök notanın adını al (C, Db, E vb.)
     final rootBaseName = _rootNote.name.replaceAll(RegExp(r'[0-9]'), '');
     
-    // Mevcut piyano görünümündeki (initialOctave) notaları boyayalım
-    // Not: PianoKeyboard içinde gösterilen notalar 'notePrefix + currentOctave' formatında.
-
-    highlightedNotes[_rootNote.name] = const Color(0xFFA78BFA);
+    // Kök notayı piyanodaki mevcut oktavda işaretle
+    highlightedNotes['$rootBaseName$pianoOctave'] = const Color(0xFFA78BFA);
 
     if (_answered) {
+      final correctBaseName = _correctNote!.name.replaceAll(RegExp(r'[0-9]'), '');
+      
       if (_isCorrect!) {
+        // Kullanıcının bastığı tuşu (doğru olduğu için) yeşil yap
         highlightedNotes[_userSelectedNote!.name] = const Color(0xFF6EE7B7);
       } else {
+        // Yanlış basılan tuşu kırmızı yap
         highlightedNotes[_userSelectedNote!.name] = const Color(0xFFFDA4AF);
-        // Doğru notanın piyanodaki herhangi bir oktavdaki halini göster (ama biz sabit oktavdayız)
-        // correctBaseName'e sahip olan ve ekrandaki oktavda olan notayı bulmamız lazım.
-        final correctBaseName = _correctNote!.name.replaceAll(RegExp(r'[0-9]'), '');
-        final pianoOctave = int.tryParse(_rootNote.name.replaceAll(RegExp(r'[^0-9]'), '')) ?? 4;
         
-        final screenCorrectNote = '${correctBaseName}${pianoOctave}';
-        final screenNextOctaveCorrectNote = '${correctBaseName}${pianoOctave + 1}';
-        
-        highlightedNotes[screenCorrectNote] = const Color(0xFF6EE7B7);
-        highlightedNotes[screenNextOctaveCorrectNote] = const Color(0xFF6EE7B7);
+        // Doğru notayı piyanodaki mevcut oktavda yeşil olarak göster
+        highlightedNotes['$correctBaseName$pianoOctave'] = const Color(0xFF6EE7B7);
+        // Eğer doğru nota bir üst oktavın C'si ise (piano_keyboard'daki 8. tuş gibi durumlar için)
+        highlightedNotes['$correctBaseName${pianoOctave + 1}'] = const Color(0xFF6EE7B7);
       }
     }
 

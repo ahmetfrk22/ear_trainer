@@ -3,26 +3,24 @@ import 'package:just_audio/just_audio.dart';
 import 'package:muzik_kulagi/core/models/note_model.dart';
 
 class AudioPlayerService {
-  // SINGLETON DESENİ: Uygulama boyunca sadece 1 tane ses motoru olacak.
-  // Bu, emülatörün/telefonun "çok fazla oynatıcı açıldı" diyerek sesi kesmesini %100 engeller.
   static final AudioPlayerService _instance = AudioPlayerService._internal();
   factory AudioPlayerService() => _instance;
 
   late final List<AudioPlayer> _channels;
   late final AudioPlayer _pianoPlayer;
+  late final AudioPlayer _metronomePlayer;
 
   AudioPlayerService._internal() {
-    // Uygulama ömrü boyunca SADECE 1 KEZ üretilir!
     _channels = [AudioPlayer(), AudioPlayer(), AudioPlayer()];
     _pianoPlayer = AudioPlayer();
+    _metronomePlayer = AudioPlayer();
   }
 
   Future<void> preloadNotes(List<NoteModel> notes) async {
     for (int i = 0; i < notes.length; i++) {
       if (i < _channels.length) {
         try {
-          await _channels[i]
-              .stop(); // Yüklemeden önce kanalı temizle ki boğulmasın
+          await _channels[i].stop();
           await _channels[i].setAsset(notes[i].assetPath);
         } catch (e) {
           debugPrint('Ön-yükleme hatası: ${notes[i].name}');
@@ -33,8 +31,7 @@ class AudioPlayerService {
 
   Future<void> playNote(NoteModel note) async {
     try {
-      await _pianoPlayer
-          .stop(); // Piyano tuşuna peş peşe basıldığında önceki sesi anında kes
+      await _pianoPlayer.stop();
       await _pianoPlayer.setAsset(note.assetPath);
       _pianoPlayer.play();
     } catch (e) {
@@ -63,8 +60,18 @@ class AudioPlayerService {
     }
   }
 
+  Future<void> playMetronomeClick({bool isAccent = false}) async {
+    try {
+      await _metronomePlayer.setAsset(isAccent ? 'assets/audio/notes/C4.mp3' : 'assets/audio/notes/C3.mp3');
+      _metronomePlayer.setVolume(0.5);
+      await _metronomePlayer.stop();
+      await _metronomePlayer.play();
+    } catch (e) {
+      debugPrint('Metronom sesi hatası: $e');
+    }
+  }
+
   void dispose() {
-    // SINGLETON OLDUĞU İÇİN DİSPOSE EDİLMEMELİ!
-    // Eskiden sayfadan çıkınca kanallar ölüyordu, sessizliğe sebep olan asıl tuzak buydu.
+    // Singleton olduğu için kapatılmıyor
   }
 }

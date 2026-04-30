@@ -4,6 +4,7 @@ import 'package:muzik_kulagi/core/utils/color_utils.dart';
 import 'package:muzik_kulagi/features/pitch_matching/pitch_matching_screen.dart';
 import 'package:muzik_kulagi/features/interval/interval_screen.dart';
 import 'package:muzik_kulagi/features/interval_trainer/interval_trainer_screen.dart';
+import 'package:muzik_kulagi/features/solfege/solfege_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -112,7 +113,7 @@ class HomeScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    // 4. MODÜL: İLERLEME (İstatistikler)
+                    // 5. MODÜL: İLERLEME (İstatistikler)
                     _ModuleCard(
                       icon: Icons.bar_chart_rounded,
                       title: 'İlerleme',
